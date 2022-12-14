@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Pronunciation search</title>
+    <link rel="stylesheet" type="text/css" href="css/datatables.min.css"/>
+    <style>
+        .main {
+            text-align: center;
+            background-color: #fff;
+            border-radius: 20px;
+            width: 600px;
+            /*height: 350px;*/
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%,-50%);
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <table id="table" class="display">
+            <thead>
+            <tr>
+                <th class="dt-center">Name</th>
+                <th></th>
+            </tr>
+            </thead>
+<!--            <tbody id="list">-->
+<!--            <tr th:each="Sound:${@IRedisService.getAllURL()}">-->
+<!--                <td th:text="${Sound.name}"></td>-->
+<!--                <td th:text="${Sound.URL}"></td>-->
+<!--            </tr>-->
+<!--            </tbody>-->
+        </table>
+    </div>
+
+
+    <script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="js/datatables.min.js"></script>
+    <script>
+
+        var dataSet = [];
+        var flag = true;
+
+        $(document).ready( function () {
+            getAllURL();
+
+            // 初始化DataTable
+            var table = $('#table').DataTable({
+                // 第2列不进行排序
+                columnDefs:[
+                    {
+                        targets:[1],
+                        orderable:false
+                    },
+                    {
+                        targets: -1,
+                        data: null,
+                        defaultContent: '<button>READ</button>',
+                    },
+                ],
+
+                // 不显示show entries
+                lengthChange: false,
+                columns: [
+                    {title: "Name"},
+                    {title: ''},
+                ],
+                data: dataSet,
+            });
+
+
+            $('#table tbody').on('click', 'button', function () {
+                var data = table.row($(this).parents('tr')).data();
+                console.log("我爱你");
+                playSound(data[1]);
+            });
+
+        } );
+
+        // 获得所有数据获得
+        function getAllURL() {
+            // $.get(
+            //     "/getAllURL.do",
+            //     {},
+            //     function (result) {
+            //         console.log(result);
+            //     }
+            // )
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:8080/getAllURL.do",
+                async: false,  // 保证Ajax执行完才能执行别的东西
+                success: function (result) {
+                    $(result).each(
+                        function (i, values) {
+                            console.log(values);
+                            dataSet.push([values.name, values.url]);
+                        }
+                    );
+                    console.log(dataSet);
+                },
+                error: function (XMLHttpRequest, textStatus) {
+                    console.log("状态码：" + XMLHttpRequest.status);
+                    console.log("错误信息：" + textStatus);
+                }
+            });
+        }
+
+        function playSound(sound) {
+            if (flag == true) {
+                console.log("来了");
+                var music = new Audio(sound);
+                music.play();
+                music.addEventListener("playing", () => {
+                    flag = false;
+                });
+                music.addEventListener("ended", () => {
+                    flag = true;
+                });
+            }
+        }
+
+    </script>
+</body>
+</html>
